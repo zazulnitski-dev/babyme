@@ -4,6 +4,8 @@ import re
 from datetime import datetime
 import requests
 
+csv.field_size_limit(100000000)
+
 class ImportTools:
     weeks = {
         '-40': 'P1', '-39': 'P2', '-38': 'P3', '-37': 'P4', '-36': 'P5', '-35': 'P6', '-34': 'P7',
@@ -41,21 +43,31 @@ class ImportTools:
 
     def get_content(self):
         with open(f'{self.workdir}/{self.filename}') as csvfile:
-            csv_reader = csv.reader(csvfile, delimiter = self.delimiter)
+            csv_reader = csv.reader(csvfile, delimiter = self.delimiter, quotechar='~')
             content = [row for row in csv_reader]
             return content
 
     def generate_new_file(self):
         content = self.get_content()
         name_field = ''
-        content[0].append('shared_content')
+
+        if self.content_type == 'node':
+	        content[0].append('shared_content')
 
         if self.multilingual == 0:
             for i in range(len(content[0])):
-                content[0][i] = content[0][i].replace(self.prefix, '')
+                content[0][i] = replace_ending(content[0][i], self.prefix, '')
+
+        if self.content_type == 'taxonomy':
+            label_col = content[0].index('name_field')
+            content = list(filter(lambda row: row[label_col] and row[label_col].strip(), content))
+        elif self.content_type == 'node':
+            label_col = content[0].index('title_field')
+            content = list(filter(lambda row: row[label_col] and row[label_col].strip(), content))
 
         for row in content[1::]:
-            row.append('Local')
+            if self.content_type == 'node':
+            	row.append('Local')
 
             if self.content_type == 'taxonomy':
                 name_field = row[content[0].index('name_field')]
@@ -77,19 +89,17 @@ class ImportTools:
             if 'field_ingredients' in content[0] and \
                     len(row[content[0].index('field_ingredients')]) > 1:
                 ingredients_arr = [item.strip() for item in row[content[0].index('field_ingredients')].split('|')]
-                row[content[0].index('field_ingredients')] = '|'.join(stage_arr)
+                row[content[0].index('field_ingredients')] = '|'.join(ingredients_arr)
 
 
             if 'field_image_alt' in content[0] and \
                     len(row[content[0].index('field_image_alt')]) < 1:
                 row[content[0].index('field_image_alt')] = name_field.strip()
 
-            row[content[0].index('field_image_alt')] = name_field.strip()
-            row[content[0].index('field_image_title')] = name_field.strip()
-
-            if 'field_image_title' in content[0] and \
-                    len(row[content[0].index('field_image_title')]) < 1:
-                row[content[0].index('field_image_title')] = name_field
+            if 'field_image_alt' in content[0] and content[0].index('field_image_alt') and len(row[content[0].index('field_image_alt')]) < 1:
+                row[content[0].index('field_image_alt')] = name_field.strip()
+            if 'field_image_title' in content[0] and content[0].index('field_image_title') and len(row[content[0].index('field_image_title')]) < 1:
+                row[content[0].index('field_image_title')] = name_field.strip()
 
             if 'field_article_subtitle' in content[0] and \
                     len(row[content[0].index('field_article_subtitle')]) < 1:
@@ -99,11 +109,12 @@ class ImportTools:
                     len(row[content[0].index('field_brand_subtitle_value')]) < 1:
                 row[content[0].index('field_brand_subtitle_value')] = '-'
 
-            if 'created' in content[0]:
-                timestamp = int(datetime.fromisoformat(row[content[0].index('created')]).timestamp())
-                row[content[0].index('created')] = datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M:%S')
+            if 'created' in content[0] and content[0].index('created') in row:
+	                timestamp = int(datetime.fromisoformat(row[content[0].index('created')]).timestamp())
+        	        row[content[0].index('created')] = datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M:%S')
 
-            if 'url_alias' in content[0]:
+            if 'url_alias' in content[0] and \
+                    len(row[content[0].index('url_alias')]) > 1:
                 row[content[0].index('url_alias')] = '/'+row[content[0].index('url_alias')].replace('/', '')
 
             if 'body_value' in content[0]:
@@ -135,19 +146,45 @@ class ImportTools:
 
                 row[content[0].index('field_cooking_text')] = field_cooking_text
 
-        with open(self.path_to_feeds_dir+'/NEW_'+self.filename, 'w+') as file:
-            file_writer = csv.writer(file, delimiter = ";", lineterminator="\n")
+        with open(self.path_to_feeds_dir+self.filename, 'w+') as file:
+            file_writer = csv.writer(file, delimiter = ";", lineterminator="\n", quotechar='"')
             for row in content:
                 file_writer.writerow(row)
 
 
-obj1 = ImportTools(
-    filename = 'FR_content_export_article_2021-06-23.csv',
-    workdir = './new_csv/',
-    path_to_feeds_dir = '/media/zazulnitski/R/work/babyme/web/sites/default/files/feeds',
-    delimiter = ';',
-    content_type = 'node',
-    multilingual = 0,
-    prefix = '_fr'
-)
-obj1.generate_new_file()
+def replace_ending(sentence, old, new):
+    # Check if the old string is at the end of the sentence 
+    if sentence.endswith(old):
+        # Using i as the slicing index, combine the part
+        # of the sentence up to the matched string at the 
+        # end with the new string
+        i = sentence.index(old)
+        new_sentence = sentence[0:i] + new
+        return new_sentence
+
+    # Return the original sentence if there is no match 
+    return sentence
+
+csvfiles = {
+'TH_content_export_article_2021-08-19.csv': 'node',
+'TH_content_export_brand_2021-08-19.csv': 'node',
+'TH_content_export_elearn_article_2021-08-19.csv': 'node',
+'TH_content_export_names_2021-08-19.csv': 'node',
+'TH_content_export_names_origin_2021-08-19.csv': 'taxonomy',
+'TH_content_export_product_2021-08-19.csv': 'node',
+'TH_content_export_recipe_2021-08-19.csv': 'node',
+'TH_content_export_stage_themes_2021-08-19.csv': 'taxonomy',
+'TH_content_export_stages_2021-08-19.csv': 'taxonomy',
+}
+
+for csvfile, entitytype in csvfiles.items():
+	obj1 = ImportTools(
+	    filename = csvfile,
+	    workdir = './Original/',
+	    path_to_feeds_dir = './Result/',
+	    delimiter = ';',
+	    content_type = entitytype,
+	    multilingual = 0,
+	    prefix = '_th'
+	)
+	obj1.generate_new_file()
