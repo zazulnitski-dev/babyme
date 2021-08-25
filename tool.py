@@ -165,6 +165,7 @@ def replace_ending(sentence, old, new):
     # Return the original sentence if there is no match 
     return sentence
 
+# Тут меняйте/добавляйте названия файлов CSV
 csvfiles = {
 'TH_content_export_article_2021-08-19.csv': 'node',
 'TH_content_export_brand_2021-08-19.csv': 'node',
