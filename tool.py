@@ -181,7 +181,7 @@ csvfiles = {
 for csvfile, entitytype in csvfiles.items():
 	obj1 = ImportTools(
 	    filename = csvfile,
-	    workdir = './Original/',
+	    workdir = './content files/',
 	    path_to_feeds_dir = './Result/',
 	    delimiter = ';',
 	    content_type = entitytype,
