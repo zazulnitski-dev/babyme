@@ -115,7 +115,7 @@ class ImportTools:
 
             if 'url_alias' in content[0] and \
                     len(row[content[0].index('url_alias')]) > 1:
-                row[content[0].index('url_alias')] = '/'+row[content[0].index('url_alias')].replace('/', '')
+                row[content[0].index('url_alias')] = '/'+row[content[0].index('url_alias')]
 
             if 'body_value' in content[0]:
                 body_value = row[content[0].index('body_value')]
