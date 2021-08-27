@@ -96,13 +96,11 @@ class ImportTools:
                     len(row[content[0].index('field_image_alt')]) < 1:
                 row[content[0].index('field_image_alt')] = name_field.strip()
 
-	    image_title = name_field.strip()
-            if 'field_image_alt' in content[0] and content[0].index('field_image_alt') and len(row[content[0].index('field_image_alt')]) < 1:
-                row[content[0].index('field_image_alt')] = image_title
-	    else 
-		image_title = row[content[0].index('field_image_alt')]
-            if 'field_image_title' in content[0] and content[0].index('field_image_title') and len(row[content[0].index('field_image_title')]) < 1:
-                row[content[0].index('field_image_title')] = image_title
+            if 'field_image_alt' in content[0] and len(row[content[0].index('field_image_alt')]) < 1:
+                   row[content[0].index('field_image_alt')] = name_field.strip()
+
+            if 'field_image_title' in content[0] and len(row[content[0].index('field_image_title')]) < 1:
+                row[content[0].index('field_image_title')] = name_field.strip()
 
             if 'field_article_subtitle' in content[0] and \
                     len(row[content[0].index('field_article_subtitle')]) < 1:
