@@ -6,12 +6,13 @@ csv.field_size_limit(100000000)
 
 class ExportTools:
 
-    def __init__(self, sourcefile, tagfile, url, source_col_nid = 2, source_col_title = 5, tag_col_title = 1, tag_col_nid = 4, tag_col_url = 5):
+    def __init__(self, sourcefile, tagfile, url, source_col_nid = 2, source_col_title = 5, source_col_alias = 28, tag_col_title = 1, tag_col_nid = 4, tag_col_url = 5):
         self.sourcefile = sourcefile
         self.tagfile = tagfile
         self.url = url
         self.source_col_nid = source_col_nid
         self.source_col_title = source_col_title
+        self.source_col_alias = source_col_alias
         self.tag_col_title = tag_col_title
         self.tag_col_nid = tag_col_nid
         self.tag_col_url = tag_col_url
@@ -35,7 +36,7 @@ class ExportTools:
                 if item_1[self.source_col_title].strip() == item_2[self.tag_col_title].strip():
                     id_node = item_1[self.source_col_nid]
                     item_2[self.tag_col_nid] = id_node
-                    item_2[self.tag_col_url] = self.url + 'node/' + id_node
+                    item_2[self.tag_col_url] = self.url + item_1[self.source_col_alias]
                     i += 1
                     print(i)
                     break
@@ -45,7 +46,7 @@ class ExportTools:
             for row in tagfile:
                 file_writer.writerow(row)
 
-obj1 = ExportTools('TH_content_export_article_2021-08-19.csv', 'article_tagging.csv', 'https://www.nestlemomandme.in.th/')
+obj1 = ExportTools('TH_content_export_article_2021-08-19.csv', 'article_tagging.csv', 'https://www.nestlemomandme.in.th')
 obj1.tagging()
 
 # Дополните с recipe & product
